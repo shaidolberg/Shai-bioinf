@@ -183,6 +183,7 @@ print(p)
 dev.off()
 
 #### fpkm
+#aojho
 stopCluster(cl)
 time.end=proc.time()[[3]]
 time.end-time.start
