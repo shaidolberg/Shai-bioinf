@@ -19,7 +19,7 @@ table_down <- args[2]
 time.start=proc.time()[[3]]
 
 #downstream##########################################
-table_down <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_down.txt"
+#table_down <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_down.txt"
 table1<-read.table(table_down, sep = "\t", header = FALSE)
 #table1 <- table1[1:20,]
 vars <- colsplit(table1$V4, "_", c("ENST", "subcomp" ,"FPKM","connctivity"))
@@ -31,7 +31,7 @@ table1 <- table1[order(table1$ENST),]#order by ENST
 bigwig_d <- table1[,11:ncol(table1)]
 end_loci <- length(bigwig_d)
 #upstream#################################################
-table_up <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_up.txt"
+#table_up <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_up.txt"
 table1u<-read.table(table_up,sep = "\t")
 #table1u <- table1u[1:20,]
 varsu <- colsplit(table1u$V4, "_", c("ENST", "subcomp" ,"FPKM","connctivity"))
@@ -177,7 +177,7 @@ p <-ggplot(m, aes(x=Loci, y=Pval, group=O.E)) +
 
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_connectivity_figuers")
 #setwd("D:/shai/hiC_chip-seq/intron_data")
-png(file= paste0(name,"_1st_intron.png"),width=850,height=600,res = 150)
+png(file= paste0(name,"_1int_connectivity.png"),width=850,height=600,res = 150)
 print(p)
 #print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
 dev.off()
@@ -231,7 +231,7 @@ m <- melt(mean_bin_table_fpkm,id.vars="bin")#melting the table so each loci is i
 colnames(m) <-c("FPKM","Loci","ChIP_seq_Signal")
 m$FPKM <- factor(m$FPKM, levels= c("High","Medium","Low","Non"), labels=c("High","Medium","Low","Non"))
 m$Loci <-as.numeric(as.character(m$Loci))
-m$Mean_FPKM <- as.numeric(m$Mean_FPKM)
+m$Mean_FPKM <- as.numeric(m$ChIP_seq_Signal)
 
 p <- ggplot(m, aes(x = Loci, y = ChIP_seq_Signal, group = FPKM)) +
   geom_line(aes(color = FPKM), size = 0.7) +
@@ -245,9 +245,46 @@ p <- ggplot(m, aes(x = Loci, y = ChIP_seq_Signal, group = FPKM)) +
   #theme(legend.justification = c("right", "top"),legend.position = c(.95, .95))+ #option for legend on the figure
   ggtitle(name, subtitle = out)
 
-setwd("/home/shaidulberg/chipseq/Modifications/1intron_connectivity_figuers")
+setwd("/home/shaidulberg/chipseq/Modifications/1intron_FPKM_figures")
 #setwd("D:/shai/hiC_chip-seq/intron_data")
-png(file= paste0(name,"_1st_intron.png"),width=850,height=600,res = 150)
+png(file= paste0(name,"_1intron_FPKM.png"),width=850,height=600,res = 150)
+print(p)
+#print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
+dev.off()
+#########################################################################
+
+#SUBCOMPARTMENT##########################################################
+mean_bin_table <- data.frame(matrix(NA, nrow = c(0:6), ncol = length(position+1)))
+for (i in c("A1","A2","B1","B2","B3")){
+  #n = as.character(length(which(subset_table[,1]==(i))))
+  #write(paste0(i," n=",n),"/home/shaidulberg/chipseq/Modifications/exons_n.txt",append = TRUE)
+  
+  indx <- which(full_table$subcomp == (i))#the row numbers in the subcompartment
+  mean_vector <- t(as.matrix(apply(full_table[indx,11:ncol(full_table)], 2, mean,na.rm=TRUE)))#the vector of the mean of the subcomp, per nuc
+  mean_bin_table_sub <- cbind(i,mean_vector)
+  colnames(mean_bin_table_sub) <-c("subcomp",position)
+  
+  mean_bin_table <- rbind(mean_bin_table,mean_bin_table_sub)
+}
+
+m <- as.data.frame(melt(mean_bin_table,id.vars="subcomp"))#melting the table so each loci is infront of its bin
+colnames(m) <-c("subcomp","Loci","Histone_Modification")
+m$Loci <-as.numeric(as.character(m$Loci))
+m$Histone_Modification <-as.numeric(as.character(m$Histone_Modification))
+
+p <- ggplot(m, aes(x=Loci, y=Histone_Modification, group=subcomp)) +
+  geom_line(aes(color=subcomp), size=0.7) +
+  scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
+  #coord_cartesian(ylim = c(0, 25)) +
+  labs(y=paste0("ChIP-seq Signal"))+
+  geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
+  geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
+  scale_colour_manual(name= "subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"="cyan"), guide='legend') +
+  ggtitle(name)
+
+setwd("/home/shaidulberg/chipseq/Modifications/1intron_subcom_figures")
+#setwd("D:/shai/hiC_chip-seq/intron_data")
+png(file= paste0(name,"_1intron_subcom.png"),width=850,height=600,res = 150)
 print(p)
 #print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
 dev.off()
