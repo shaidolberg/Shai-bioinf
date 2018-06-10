@@ -156,14 +156,14 @@ con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
 
 mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
 colnames(mCon) <-c("Connectivity","Loci","Pval")
-mCon$O.E <- na.omit(as.character(mCon$Connectivity))
+mCon$Connectivity <- na.omit(as.character(mCon$Connectivity))
 mCon$Loci <- na.omit(as.numeric(as.character(mCon$Loci)))
 mCon$Pval <- na.omit(as.numeric(mCon$Pval))
 
 #forcing the order of the legended titles
-mCon$O.E <- factor(mCon$O.E, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
+mCon$O.E <- factor(mCon$Connectivity, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
 pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
-  geom_line(aes(color=O.E), size=0.7) +
+  geom_line(aes(color=Connectivity), size=0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   #coord_cartesian(ylim = c(0, 25)) +
   scale_fill_gradient(low="darkgreen",high="green") +
@@ -171,7 +171,7 @@ pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
   labs(y=paste0("ChIP-seq Signal"))+
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
   scale_colour_manual(name='Connectivity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') +
- # theme(legend.position="none")+ #no legend
+  # theme(legend.position="none")+ #no legend
   #theme(legend.justification = c("right", "top"),legend.position = c(.95, .95))+ #option for legend on the figure
   ggtitle(name, subtitle = out)
 
