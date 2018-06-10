@@ -59,25 +59,25 @@ name <- split2[length(split2)]
 #write.table(av_table, file = paste0(name,"_av_table.txt"), sep = "\t" , row.names=FALSE)
 
 #CONNECTIVITY######################
-bins = 4
+binsConnectivity = 4
 #ordering by connectivity, low to high
 tb <- full_table[order(full_table$connctivity),]
 #get the bin ranges
-x <- cut2(tb$connctivity, g=bins)
+x <- cut2(tb$connctivity, g=binsConnectivity)
 ranges_tb <- cbind.data.frame(x, tb)
 ranges_tb$x <- as.character(ranges_tb$x)
 ###########################################################################
 #mean loop
 #uni_tb <- unique(ranges_tb[,c(2,3,4,8,12:ncol(ranges_tb))]) #chr-start-end-subcomp
 
-mean_bin_table <- data.frame(matrix(NA, nrow = c(0:4), ncol = length(position)))
+con_bin_table <- data.frame(matrix(NA, nrow = c(0:4), ncol = length(position)))
 for (i in as.character(levels(x))){
   print(i)
   indx <- which(ranges_tb$x ==  i)#the row numbers for the bin
   mean_bin_vector <- t(as.matrix(apply(ranges_tb[indx, 12:ncol(ranges_tb)], 2, mean, na.rm=TRUE)))#the vector of the mean per nuc
   bin_mean_bin_vector <- cbind(i,mean_bin_vector)
   colnames(bin_mean_bin_vector) <- c("Connectivity",position)
-  mean_bin_table <- rbind(mean_bin_table,bin_mean_bin_vector)
+  con_bin_table <- rbind(con_bin_table,bin_mean_bin_vector)
 }
 
 qtr1 <- ranges_tb[which(ranges_tb$x ==  as.character(levels(x)[1])),]
@@ -152,17 +152,17 @@ theme(axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = e
 '
 ###########################################################
 
-mean_bin_table$Connectivity <- c("Low","Medium","High","Highest")
+con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
 
-m <- as.data.frame(melt(mean_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
-colnames(m) <-c("O.E","Loci","Pval")
-m$O.E <- as.character(m$O.E)
-m$Loci <-as.numeric(as.character(m$Loci))
-m$Pval <-as.numeric(m$Pval)
+mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
+colnames(mCon) <-c("Connectvity","Loci","Pval")
+mCon$O.E <- na.omit(as.character(mCon$Connectvity))
+mCon$Loci <- na.omit(as.numeric(as.character(mCon$Loci)))
+mCon$Pval <- na.omit(as.numeric(mCon$Pval))
 
 #forcing the order of the legended titles
-m$O.E <- factor(m$O.E, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
-p <-ggplot(m, aes(x=Loci, y=Pval, group=O.E)) +
+mCon$O.E <- factor(mCon$O.E, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
+pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectvity)) +
   geom_line(aes(color=O.E), size=0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   #coord_cartesian(ylim = c(0, 25)) +
@@ -170,7 +170,7 @@ p <-ggplot(m, aes(x=Loci, y=Pval, group=O.E)) +
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   labs(y=paste0("ChIP-seq Signal"))+
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
-  scale_colour_manual(name='O.E', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') +
+  scale_colour_manual(name='Connectvity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') +
  # theme(legend.position="none")+ #no legend
   #theme(legend.justification = c("right", "top"),legend.position = c(.95, .95))+ #option for legend on the figure
   ggtitle(name, subtitle = out)
@@ -178,7 +178,7 @@ p <-ggplot(m, aes(x=Loci, y=Pval, group=O.E)) +
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_connectivity_figuers")
 #setwd("D:/shai/hiC_chip-seq/intron_data")
 png(file= paste0(name,"_1int_connectivity.png"),width=850,height=600,res = 150)
-print(p)
+print(pCON)
 #print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
 dev.off()
 
@@ -188,32 +188,32 @@ binVector <- data.frame(matrix(NA, nrow = length(FPKMtb$FPKM), ncol = 1))
 FPKMtb <- append(FPKMtb,binVector,1)
 FPKMtb <- as.data.frame(FPKMtb)
 colnames(FPKMtb)[2] <- "bin"
+binsFPKM = 4
 bin_0 <- which(FPKMtb$FPKM==0)
 FPKMtb$bin[bin_0] <- 0 #setting the 0 bin
-
-x <- (length(FPKMtb$FPKM)-length(bin_0))%%bins
+x <- (length(FPKMtb$FPKM)-length(bin_0))%%binsFPKM
 if(x!=0){
   FPKMtb <-  FPKMtb[-c(1:x),] 
 }
 
-part <- ((length(FPKMtb$FPKM)-length(bin_0))/bins)#getting the size of the bins
+part <- ((length(FPKMtb$FPKM)-length(bin_0))/binsFPKM)#getting the size of the bins
 # giving a bin number to the designated part of the table, besides the zerom bin 
-for (i in 1:bins){
+for (i in 1:binsFPKM){
   for (line in (1+(i-1)*part):((i*part))) {
     FPKMtb$bin[length(bin_0)+line] <- i
   }
 }
 
-mean_bin_table_fpkm <- data.frame(matrix(NA, nrow = 0:bins, ncol = length(position)))
+fpkm_bin_table <- data.frame(matrix(NA, nrow = 0:binsFPKM, ncol = length(position)))
 for (y in 0:3){   
-  #n = as.character(length(which(uni_tb$bin==(y))))
+  #n = as.character(length(which(uni_tb$binsFPKM==(y))))
   #write(paste0(y," n=",n),"/home/shaidulberg/chipseq/Modifications/exons_n.txt",append = TRUE)
   mean_bin_vector_fpkm <-  apply(FPKMtb[which(FPKMtb$bin==(y)),12:ncol(FPKMtb)], 2, mean , na.rm = TRUE)
   mean_bin_vector_fpkm <-  append(mean_bin_vector_fpkm,y,0) 
-  mean_bin_table_fpkm <- rbind(mean_bin_table_fpkm,mean_bin_vector_fpkm)
-  colnames(mean_bin_table_fpkm) <-c("bin",position)
+  fpkm_bin_table <- rbind(fpkm_bin_table,mean_bin_vector_fpkm)
+  colnames(fpkm_bin_table) <-c("bin",position)
 }
-mean_bin_table_fpkm$bin <- c("Non","Low","Medium","High")
+fpkm_bin_table$bin <- c("Non","Low","Medium","High")
 
 qtr1 <- FPKMtb[which(FPKMtb$bin ==  0),]
 qtr4 <- FPKMtb[which(FPKMtb$bin ==  4),]
@@ -227,13 +227,13 @@ t_v <- as.character(scientific(result$statistic , digits = 3))
 
 out <- paste0("t.v:",t_v ,", p.v:",p_v)
 
-m <- melt(mean_bin_table_fpkm,id.vars="bin")#melting the table so each loci is infront of its bin
-colnames(m) <-c("FPKM","Loci","ChIP_seq_Signal")
-m$FPKM <- factor(m$FPKM, levels= c("High","Medium","Low","Non"), labels=c("High","Medium","Low","Non"))
-m$Loci <-as.numeric(as.character(m$Loci))
-m$Mean_FPKM <- as.numeric(m$ChIP_seq_Signal)
+mFPKM <- melt(fpkm_bin_table,id.vars="bin")#melting the table so each loci is infront of its bin
+colnames(mFPKM) <-c("FPKM","Loci","ChIP_seq_Signal")
+mFPKM$FPKM <- factor(mFPKM$FPKM, levels= c("High","Medium","Low","Non"), labels=c("High","Medium","Low","Non"))
+mFPKM$Loci <- as.numeric(as.character(mFPKM$Loci))
+mFPKM$ChIP_seq_Signal <- as.numeric(mFPKM$ChIP_seq_Signal)
 
-p <- ggplot(m, aes(x = Loci, y = ChIP_seq_Signal, group = FPKM)) +
+pFPKM <- ggplot(mFPKM, aes(x = Loci, y = ChIP_seq_Signal, group = FPKM)) +
   geom_line(aes(color = FPKM), size = 0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   #coord_cartesian(ylim = c(0, 25)) +
@@ -248,31 +248,30 @@ p <- ggplot(m, aes(x = Loci, y = ChIP_seq_Signal, group = FPKM)) +
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_FPKM_figures")
 #setwd("D:/shai/hiC_chip-seq/intron_data")
 png(file= paste0(name,"_1intron_FPKM.png"),width=850,height=600,res = 150)
-print(p)
+print(pFPKM)
 #print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
 dev.off()
 #########################################################################
 
 #SUBCOMPARTMENT##########################################################
-mean_bin_table <- data.frame(matrix(NA, nrow = c(0:6), ncol = length(position+1)))
-for (i in c("A1","A2","B1","B2","B3")){
+sub_bin_table <- data.frame(matrix(NA, nrow = c(0:6), ncol = length(position+1)))
+binsSub <- na.omit(unique(full_table$subcomp))
+for (i in binsSub){
   #n = as.character(length(which(subset_table[,1]==(i))))
   #write(paste0(i," n=",n),"/home/shaidulberg/chipseq/Modifications/exons_n.txt",append = TRUE)
-  
   indx <- which(full_table$subcomp == (i))#the row numbers in the subcompartment
   mean_vector <- t(as.matrix(apply(full_table[indx,11:ncol(full_table)], 2, mean,na.rm=TRUE)))#the vector of the mean of the subcomp, per nuc
-  mean_bin_table_sub <- cbind(i,mean_vector)
-  colnames(mean_bin_table_sub) <-c("subcomp",position)
-  
-  mean_bin_table <- rbind(mean_bin_table,mean_bin_table_sub)
+  bin_mean_vector <- cbind(i,mean_vector)
+  colnames(bin_mean_vector) <-c("subcomp",position)
+  sub_bin_table <- rbind(sub_bin_table,bin_mean_vector)
 }
 
-m <- as.data.frame(melt(mean_bin_table,id.vars="subcomp"))#melting the table so each loci is infront of its bin
-colnames(m) <-c("subcomp","Loci","Histone_Modification")
-m$Loci <-as.numeric(as.character(m$Loci))
-m$Histone_Modification <-as.numeric(as.character(m$Histone_Modification))
+mSub <- as.data.frame(melt(sub_bin_table,id.vars="subcomp"))#melting the table so each loci is infront of its bin
+colnames(mSub) <- c("subcomp","Loci","Histone_Modification")
+mSub$Loci <- as.numeric(as.character(mSub$Loci))
+mSub$Histone_Modification <- as.numeric(as.character(mSub$Histone_Modification))
 
-p <- ggplot(m, aes(x=Loci, y=Histone_Modification, group=subcomp)) +
+pSub <- ggplot(mSub, aes(x=Loci, y=Histone_Modification, group=subcomp)) +
   geom_line(aes(color=subcomp), size=0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   #coord_cartesian(ylim = c(0, 25)) +
@@ -285,7 +284,7 @@ p <- ggplot(m, aes(x=Loci, y=Histone_Modification, group=subcomp)) +
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_subcom_figures")
 #setwd("D:/shai/hiC_chip-seq/intron_data")
 png(file= paste0(name,"_1intron_subcom.png"),width=850,height=600,res = 150)
-print(p)
+print(pSub)
 #print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
 dev.off()
 
