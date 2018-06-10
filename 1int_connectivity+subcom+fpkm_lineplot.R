@@ -88,7 +88,7 @@ max_mean_qtr1 <- (apply(qtr1[,which.max(mean_qtr1)-500:which.max(mean_qtr1)+500]
 max_mean_qtr4 <- (apply(qtr4[,which.max(mean_qtr4)-500:which.max(mean_qtr4)+500], 1, mean, na.rm=TRUE))
 result <- t.test(x = max_mean_qtr1 ,y = max_mean_qtr4)
 p_v <- as.character(scientific(result$p.value, digits = 3))
-t_v <- as.character(scientific(result$statistic , digits = 3))
+t_v <- as.character(substr(result$statistic,1,5))
 
 out <- paste0("t.v:",t_v ,", p.v:",p_v)
 
@@ -223,7 +223,7 @@ max_mean_qtr1 <- (apply(qtr1[,which.max(mean_qtr1)-500:which.max(mean_qtr1)+500]
 max_mean_qtr4 <- (apply(qtr4[,which.max(mean_qtr4)-500:which.max(mean_qtr4)+500], 1, mean, na.rm=TRUE))
 result <- t.test(x = max_mean_qtr1 ,y = max_mean_qtr4)
 p_v <- as.character(scientific(result$p.value, digits = 3))
-t_v <- as.character(scientific(result$statistic , digits = 3))
+t_v <- as.character(substr(result$statistic,1,5))
 
 out <- paste0("t.v:",t_v ,", p.v:",p_v)
 
