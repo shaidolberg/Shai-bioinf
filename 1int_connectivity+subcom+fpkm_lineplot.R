@@ -155,14 +155,14 @@ theme(axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = e
 con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
 
 mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
-colnames(mCon) <-c("Connectvity","Loci","Pval")
-mCon$O.E <- na.omit(as.character(mCon$Connectvity))
+colnames(mCon) <-c("Connectivity","Loci","Pval")
+mCon$O.E <- na.omit(as.character(mCon$Connectivity))
 mCon$Loci <- na.omit(as.numeric(as.character(mCon$Loci)))
 mCon$Pval <- na.omit(as.numeric(mCon$Pval))
 
 #forcing the order of the legended titles
 mCon$O.E <- factor(mCon$O.E, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
-pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectvity)) +
+pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
   geom_line(aes(color=O.E), size=0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   #coord_cartesian(ylim = c(0, 25)) +
@@ -170,7 +170,7 @@ pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectvity)) +
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   labs(y=paste0("ChIP-seq Signal"))+
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
-  scale_colour_manual(name='Connectvity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') +
+  scale_colour_manual(name='Connectivity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') +
  # theme(legend.position="none")+ #no legend
   #theme(legend.justification = c("right", "top"),legend.position = c(.95, .95))+ #option for legend on the figure
   ggtitle(name, subtitle = out)
@@ -262,23 +262,23 @@ for (i in binsSub){
   indx <- which(full_table$subcomp == (i))#the row numbers in the subcompartment
   mean_vector <- t(as.matrix(apply(full_table[indx,11:ncol(full_table)], 2, mean,na.rm=TRUE)))#the vector of the mean of the subcomp, per nuc
   bin_mean_vector <- cbind(i,mean_vector)
-  colnames(bin_mean_vector) <-c("subcomp",position)
+  colnames(bin_mean_vector) <-c("Subcomp",position)
   sub_bin_table <- rbind(sub_bin_table,bin_mean_vector)
 }
 
-mSub <- as.data.frame(melt(sub_bin_table,id.vars="subcomp"))#melting the table so each loci is infront of its bin
-colnames(mSub) <- c("subcomp","Loci","Histone_Modification")
+mSub <- as.data.frame(melt(sub_bin_table,id.vars="Subcomp"))#melting the table so each loci is infront of its bin
+colnames(mSub) <- c("Subcomp","Loci","Histone_Modification")
 mSub$Loci <- as.numeric(as.character(mSub$Loci))
 mSub$Histone_Modification <- as.numeric(as.character(mSub$Histone_Modification))
 
-pSub <- ggplot(mSub, aes(x=Loci, y=Histone_Modification, group=subcomp)) +
-  geom_line(aes(color=subcomp), size=0.7) +
+pSub <- ggplot(mSub, aes(x=Loci, y=Histone_Modification, group=Subcomp)) +
+  geom_line(aes(color=Subcomp), size=0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   #coord_cartesian(ylim = c(0, 25)) +
   labs(y=paste0("ChIP-seq Signal"))+
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
-  scale_colour_manual(name= "subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"="cyan"), guide='legend') +
+  scale_colour_manual(name= "Subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"="cyan"), guide='legend') +
   ggtitle(name)
 
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_subcom_figures")
