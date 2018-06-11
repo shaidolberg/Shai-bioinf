@@ -186,6 +186,7 @@ pFPKM <- ggplot(mFPKM, aes(x = Loci, y = ChIP_seq_Signal, group = FPKM)) +
   ggtitle(name, subtitle = out)
 
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_FPKM_figures")
+
 #setwd("D:/shai/hiC_chip-seq/intron_data")
 png(file= paste0(name,"_1intron_FPKM.png"),width=850,height=600,res = 150)
 print(pFPKM)
@@ -227,7 +228,6 @@ png(file= paste0(name,"_1intron_subcom.png"),width=850,height=600,res = 150)
 print(pSub)
 #print(grid.arrange(p, box ,nrow=1, ncol=2,newpage = TRUE, widths=c(3,1)))
 dev.off()
-
 
 stopCluster(cl)
 time.end=proc.time()[[3]]
