@@ -92,66 +92,6 @@ t_v <- as.character(substr(result$statistic,1,5))
 
 out <- paste0("t.v:",t_v ,", p.v:",p_v)
 
-##########################################################################
-'
-#for the statistics########################################
-all_mean_vector <- (apply(sub_tb[,c(5575:6575)], 1, mean, na.rm=TRUE))
-
-tb_max <- cbind.data.frame(tb$ENST ,tb$connctivity,all_mean_vector)
-colnames(tb_max) <- c("ENST", "Connectivity","Avarage_Pval")
-#write.table(tb_max, file = paste0(name,"_max_nuc.txt"),   sep = "\t" )
-
-ranges <- cut2(all_mean_vector,g = 4)
-
-a <- cbind.data.frame(ranges,all_mean_vector)
-colnames(a) <- c("bin","val")
-a$bin <- as.character(a$bin)
-
-qtr1_indx <- which(a$bin ==  as.character(levels(ranges)[1]))
-qtr2_indx <- which(a$bin ==  as.character(levels(ranges)[2]))
-qtr3_indx <- which(a$bin ==  as.character(levels(ranges)[3]))
-qtr4_indx <- which(a$bin ==  as.character(levels(ranges)[4]))
-
-qtr1 <- a[qtr1_indx,2]
-qtr2 <- a[qtr2_indx,2]
-qtr3 <- a[qtr3_indx,2]
-qtr4 <- a[qtr4_indx,2]
-
-result <- wilcox.test(x = qtr3 ,y = qtr4)
-p_v <- as.character(scientific(result$p.value, digits = 3))
-out <- paste0(name,"\t",p_v)
-#setwd("/home/shaidulberg/chipseq/Modifications")
-#write.table(out, file = paste0("pvalues.txt") , sep = "\t" , append = TRUE , eol = "\n",row.names = FALSE, col.names = FALSE)
-
-n <- max(length(qtr1), length(qtr2), length(qtr3) ,length(qtr4))
-length(qtr1) <- n   
-length(qtr2) <- n 
-length(qtr3) <- n 
-length(qtr4) <- n
-
-qtr1_table <- cbind.data.frame("1Qt",qtr1)
-colnames(qtr1_table) <- c("Qt", "Pval")
-qtr2_table <- cbind.data.frame("2Qt",qtr2)
-colnames(qtr2_table) <- c("Qt", "Pval")
-qtr3_table <- cbind.data.frame("3Qt",qtr3)
-colnames(qtr3_table) <- c("Qt", "Pval")
-qtr4_table <- cbind.data.frame("4Qt",qtr4)
-colnames(qtr4_table) <- c("Qt", "Pval")
-
-box_table <- rbind.data.frame(qtr1_table,qtr2_table, qtr3_table, qtr4_table)
-# compute lower and upper whiskers
-ylim1 = boxplot.stats(box_table$Pval)$stats[c(1, 5)]
-ylim1[2] <- ylim1[2]+4
-
-box <- ggplot(box_table,aes(y=Pval)) + 
-geom_boxplot(aes(x = Qt),notch=TRUE, outlier.colour = NA)+ 
-ggtitle(paste0("p=", p_v )) +
-theme(legend.position="none") +
-coord_cartesian(ylim = ylim1*1.8)+ # scale y limits based on ylim1
-theme(axis.title.x=element_blank(), axis.title.y=element_blank(), plot.title = element_text(size = rel(1)))
-'
-###########################################################
-
 con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
 
 mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
@@ -161,7 +101,7 @@ mCon$Loci <- na.omit(as.numeric(as.character(mCon$Loci)))
 mCon$Pval <- na.omit(as.numeric(mCon$Pval))
 
 #forcing the order of the legended titles
-mCon$O.E <- factor(mCon$Connectivity, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
+mCon$Connectivity <- factor(mCon$Connectivity, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
 pCON <-ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
   geom_line(aes(color=Connectivity), size=0.7) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
