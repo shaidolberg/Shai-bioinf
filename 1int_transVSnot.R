@@ -133,7 +133,7 @@ setwd("D:/shai/hiC_chip-seq/intron_data")
 png(file= paste0(name,"_1intron_H.L-FPKM.png"),width=1050,height=600,res = 170)
 #print(pFPKM)
 print(grid.arrange(pLOW+theme(legend.position="none")+labs(title = "Low Expression"),
-                   pHIGH+theme(legend.position="none")+labs(title = "High Expression"), mylegend,
+                   pHIGH+theme(legend.position="none")+labs(title = "High Expression")+labs(y= NULL), mylegend,
                    nrow = 1,ncol=3,widths=c(3,3,1), newpage = TRUE,
                    top = textGrob(name ,gp=gpar(fontsize=20,font=2))))
 dev.off()
