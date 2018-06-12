@@ -128,8 +128,8 @@ g_legend<-function(a.gplot){
 
 mylegend<-g_legend(pLOW)
 
-#setwd("/home/shaidulberg/chipseq/Modifications/1intron_FPKM_figures")
-setwd("D:/shai/hiC_chip-seq/intron_data")
+setwd("/home/shaidulberg/chipseq/Modifications/1intron_FPKM_figures")
+#setwd("D:/shai/hiC_chip-seq/intron_data")
 png(file= paste0(name,"_1intron_H.L-FPKM.png"),width=1050,height=600,res = 170)
 #print(pFPKM)
 print(grid.arrange(pLOW+theme(legend.position="none")+labs(title = "Low Expression"),
