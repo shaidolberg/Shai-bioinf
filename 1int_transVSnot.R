@@ -23,9 +23,9 @@ split2 <- strsplit(split1[1], "/")[[1]]
 name <- split2[length(split2)]
 
 #downstream##########################################
-table_down <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_down.txt"
+#table_down <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_down.txt"
 table1<-read.table(table_down, sep = "\t", header = FALSE)
-table1 <- table1[1:200,]
+#table1 <- table1[1:200,]
 vars <- colsplit(table1$V4, "_", c("ENST", "subcomp" ,"FPKM","connctivity"))
 table1 <-append(table1,vars,4)
 table1<- as.data.frame(table1)
@@ -35,9 +35,9 @@ table1 <- table1[order(table1$ENST),]#order by ENST
 bigwig_d <- table1[,11:ncol(table1)]
 end_loci <- length(bigwig_d)
 #upstream#################################################
-table_up <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_up.txt"
+#table_up <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_up.txt"
 table1u<-read.table(table_up,sep = "\t")
-table1u <- table1u[1:200,]
+#table1u <- table1u[1:200,]
 varsu <- colsplit(table1u$V4, "_", c("ENST", "subcomp" ,"FPKM","connctivity"))
 table1u <-append(table1u,varsu,4)
 table1u<- as.data.frame(table1u)
