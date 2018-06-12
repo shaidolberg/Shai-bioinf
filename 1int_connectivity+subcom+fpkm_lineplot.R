@@ -218,7 +218,7 @@ pSub <- ggplot(mSub, aes(x=Loci, y=Histone_Modification, group=Subcomp)) +
   labs(y=paste0("ChIP-seq Signal"))+
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
-  scale_colour_manual(name= "Subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"="cyan"), guide='legend') +
+  scale_colour_manual(name= "Subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"=NULL), guide='legend') +
   ggtitle(name)
 
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_subcom_figures")
