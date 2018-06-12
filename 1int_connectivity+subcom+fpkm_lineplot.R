@@ -82,10 +82,10 @@ for (i in as.character(levels(x))){
 
 qtr1 <- ranges_tb[which(ranges_tb$x ==  as.character(levels(x)[1])),]
 qtr4 <- ranges_tb[which(ranges_tb$x ==  as.character(levels(x)[4])),]
-mean_qtr1 <- t(as.matrix(apply(qtr1[, 12:ncol(ranges_tb)], 2, mean, na.rm=TRUE)))
-mean_qtr4 <- t(as.matrix(apply(qtr4[, 12:ncol(ranges_tb)], 2, mean, na.rm=TRUE)))
-max_mean_qtr1 <- (apply(qtr1[,which.max(mean_qtr1)-500:which.max(mean_qtr1)+500], 1, mean, na.rm=TRUE))
-max_mean_qtr4 <- (apply(qtr4[,which.max(mean_qtr4)-500:which.max(mean_qtr4)+500], 1, mean, na.rm=TRUE))
+#mean_qtr1 <- t(as.matrix(apply(qtr1[, 12:ncol(ranges_tb)], 2, mean, na.rm=TRUE)))
+#mean_qtr4 <- t(as.matrix(apply(qtr4[, 12:ncol(ranges_tb)], 2, mean, na.rm=TRUE)))
+max_mean_qtr1 <- (apply(qtr1[,575:1575], 1, mean, na.rm=TRUE))
+max_mean_qtr4 <- (apply(qtr4[,575:1575], 1, mean, na.rm=TRUE))
 result <- t.test(x = max_mean_qtr1 ,y = max_mean_qtr4)
 p_v <- as.character(scientific(result$p.value, digits = 3))
 t_v <- as.character(substr(result$statistic,1,5))
@@ -157,10 +157,10 @@ fpkm_bin_table$bin <- c("Non","Low","Medium","High")
 
 qtr1 <- FPKMtb[which(FPKMtb$bin ==  0),]
 qtr4 <- FPKMtb[which(FPKMtb$bin ==  4),]
-mean_qtr1 <- t(as.matrix(apply(qtr1[, 12:ncol(qtr1)], 2, mean, na.rm=TRUE)))
-mean_qtr4 <- t(as.matrix(apply(qtr4[, 12:ncol(qtr4)], 2, mean, na.rm=TRUE)))
-max_mean_qtr1 <- (apply(qtr1[,which.max(mean_qtr1)-500:which.max(mean_qtr1)+500], 1, mean, na.rm=TRUE))
-max_mean_qtr4 <- (apply(qtr4[,which.max(mean_qtr4)-500:which.max(mean_qtr4)+500], 1, mean, na.rm=TRUE))
+#mean_qtr1 <- t(as.matrix(apply(qtr1[, 12:ncol(qtr1)], 2, mean, na.rm=TRUE)))
+#mean_qtr4 <- t(as.matrix(apply(qtr4[, 12:ncol(qtr4)], 2, mean, na.rm=TRUE)))
+max_mean_qtr1 <- (apply(qtr1[,575:1575], 1, mean, na.rm=TRUE))
+max_mean_qtr4 <- (apply(qtr4[,575:1575], 1, mean, na.rm=TRUE))
 result <- t.test(x = max_mean_qtr1 ,y = max_mean_qtr4)
 p_v <- as.character(scientific(result$p.value, digits = 3))
 t_v <- as.character(substr(result$statistic,1,5))
@@ -196,8 +196,7 @@ dev.off()
 
 #SUBCOMPARTMENT##########################################################
 sub_bin_table <- data.frame(matrix(NA, nrow = c(0:6), ncol = length(position+1)))
-binsSub <- na.omit(unique(full_table$subcomp))
-for (i in binsSub){
+for (i in c("A1","A2","B1","B2","B3")){
   #n = as.character(length(which(subset_table[,1]==(i))))
   #write(paste0(i," n=",n),"/home/shaidulberg/chipseq/Modifications/exons_n.txt",append = TRUE)
   indx <- which(full_table$subcomp == (i))#the row numbers in the subcompartment
@@ -219,7 +218,7 @@ pSub <- ggplot(mSub, aes(x=Loci, y=Histone_Modification, group=Subcomp)) +
   labs(y=paste0("ChIP-seq Signal"))+
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
-  scale_colour_manual(name= "Subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"="cyan"), guide='legend') +
+  scale_colour_manual(name= "Subcomp", values= c("A1"="red","A2"="blue","B1"="gold1","B2"="purple","B3"="green4","B4"=NULL), guide='legend') +
   ggtitle(name)
 
 setwd("/home/shaidulberg/chipseq/Modifications/1intron_subcom_figures")
