@@ -82,7 +82,7 @@ for (i in as.character(levels(x))){
   colnames(bin_mean_bin_vector) <- c("Connectivity",position)
   con_bin_table <- rbind(con_bin_table,bin_mean_bin_vector)
 }
-
+'
 qtr1 <- ranges_FPKMtb[which(ranges_FPKMtb$x ==  as.character(levels(x)[1])),]
 qtr4 <- ranges_FPKMtb[which(ranges_FPKMtb$x ==  as.character(levels(x)[4])),]
 mean_qtr1 <- (apply(qtr1[,575:1575], 1, mean, na.rm=TRUE))
@@ -92,7 +92,7 @@ p_v <- as.character(scientific(result$p.value, digits = 3))
 t_v <- as.character(substr(result$statistic,1,5))
 
 out <- paste0("t.v:",t_v ,", p.v:",p_v)
-
+'
 con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
 
 mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
@@ -109,7 +109,7 @@ pCON <- ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
   #coord_cartesian(ylim = c(0, 25)) +
   scale_fill_gradient(low="darkgreen",high="green") +
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
-  labs(y=paste0("ChIP-seq Signal"),subtitle = out)+
+  labs(y=paste0("ChIP-seq Signal"))+ #,subtitle = out
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
   scale_colour_manual(name='Connectivity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') 
   #theme(legend.position="none") #no legend
