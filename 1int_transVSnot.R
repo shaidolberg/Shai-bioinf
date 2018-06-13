@@ -59,54 +59,46 @@ lowFPKMtb <- FPKMtb[c(which(ranges_FPKMtb$ranges ==  as.character(levels(ranges)
 highFPKMtb <- FPKMtb[c(which(ranges_FPKMtb$ranges ==  as.character(levels(ranges)[4]))),]
 
 
-#CONNECTIVITY - low FPKM######################
-binsConnectivity = 4
 
-figCreator <- function(table_input){
-#ordering by connectivity, low to high
-tb <- table_input[order(table_input$connctivity),]
-#get the bin ranges
-x <- cut2(tb$connctivity, g=binsConnectivity)
-ranges_FPKMtb <- cbind.data.frame(x, tb)
-ranges_FPKMtb$x <- as.character(ranges_FPKMtb$x)
-###########################################################################
-#mean loop
-#uni_tb <- unique(ranges_tb[,c(2,3,4,8,12:ncol(ranges_tb))]) #chr-start-end-subcomp
-
-con_bin_table <- data.frame(matrix(NA, nrow = c(0:4), ncol = length(position)))
-for (i in as.character(levels(x))){
-  print(i)
-  indx <- which(ranges_FPKMtb$x == i)#the row numbers for the bin
-  mean_bin_vector <- t(as.matrix(apply(ranges_FPKMtb[indx, c(12:ncol(ranges_FPKMtb))], 2, mean, na.rm=TRUE)))#the vector of the mean per nuc
-  bin_mean_bin_vector <- cbind(i,mean_bin_vector)
-  colnames(bin_mean_bin_vector) <- c("Connectivity",position)
-  con_bin_table <- rbind(con_bin_table,bin_mean_bin_vector)
+create_molten_table <- function(input_table){
+  #ordering by connectivity, low to high
+  tb <- input_table[order(input_table$connctivity),]
+  #get the bin ranges
+  x <- cut2(tb$connctivity, g=4)
+  ranges_FPKMtb <- cbind.data.frame(x, tb)
+  ranges_FPKMtb$x <- as.character(ranges_FPKMtb$x)
+  #mean loop
+  #uni_tb <- unique(ranges_tb[,c(2,3,4,8,12:ncol(ranges_tb))]) #chr-start-end-subcomp
+  con_bin_table <- data.frame(matrix(NA, nrow = c(0:4), ncol = length(position)))
+  for (i in as.character(levels(x))){
+    print(i)
+    indx <- which(ranges_FPKMtb$x == i)#the row numbers for the bin
+    mean_bin_vector <- t(as.matrix(apply(ranges_FPKMtb[indx, c(12:ncol(ranges_FPKMtb))], 2, mean, na.rm=TRUE)))#the vector of the mean per nuc
+    bin_mean_bin_vector <- cbind(i,mean_bin_vector)
+    colnames(bin_mean_bin_vector) <- c("Connectivity",position)
+    con_bin_table <- rbind(con_bin_table,bin_mean_bin_vector)
+  }
+  con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
+  
+  mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
+  colnames(mCon) <-c("Connectivity","Loci","Pval")
+  mCon$Connectivity <- na.omit(as.character(mCon$Connectivity))
+  mCon$Loci <- na.omit(as.numeric(as.character(mCon$Loci)))
+  mCon$Pval <- na.omit(as.numeric(mCon$Pval))
+  return(mCon)
 }
-'
-qtr1 <- ranges_FPKMtb[which(ranges_FPKMtb$x ==  as.character(levels(x)[1])),]
-qtr4 <- ranges_FPKMtb[which(ranges_FPKMtb$x ==  as.character(levels(x)[4])),]
-mean_qtr1 <- (apply(qtr1[,575:1575], 1, mean, na.rm=TRUE))
-mean_qtr4 <- (apply(qtr4[,575:1575], 1, mean, na.rm=TRUE))
-result <- t.test(x = mean_qtr1 ,y = mean_qtr4)
-p_v <- as.character(scientific(result$p.value, digits = 3))
-t_v <- as.character(substr(result$statistic,1,5))
 
-out <- paste0("t.v:",t_v ,", p.v:",p_v)
-'
-con_bin_table$Connectivity <- c("Low","Medium","High","Highest")
+mLOW <- create_molten_table(lowFPKMtb)
+mHIGH <- create_molten_table(highFPKMtb)
+ymax = as.numeric(max(mLOW$Pval, mHIGH$Pval,na.rm = TRUE))
 
-mCon <- as.data.frame(melt(con_bin_table,id.vars="Connectivity"))#melting the table so each loci is infront of its bin
-colnames(mCon) <-c("Connectivity","Loci","Pval")
-mCon$Connectivity <- na.omit(as.character(mCon$Connectivity))
-mCon$Loci <- na.omit(as.numeric(as.character(mCon$Loci)))
-mCon$Pval <- na.omit(as.numeric(mCon$Pval))
-
+#CONNECTIVITY - low FPKM######################
 #forcing the order of the legended titles
-mCon$Connectivity <- factor(mCon$Connectivity, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
-pCON <- ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
+mLOW$Connectivity <- factor(mLOW$Connectivity, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
+pLOW <- ggplot(mLOW, aes(x=Loci, y=Pval, group=Connectivity)) +
   geom_line(aes(color=Connectivity), size=0.6) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
-  #coord_cartesian(ylim = c(0, 25)) +
+  coord_cartesian(ylim = c(-0.08, ymax+0.1), xlim = c(-5075, 5074), expand = FALSE)+
   scale_fill_gradient(low="darkgreen",high="green") +
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   labs(y=paste0("ChIP-seq Signal"))+ #,subtitle = out
@@ -114,11 +106,23 @@ pCON <- ggplot(mCon, aes(x=Loci, y=Pval, group=Connectivity)) +
   scale_colour_manual(name='Connectivity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') 
   #theme(legend.position="none") #no legend
   #theme(legend.justification = c("right", "top"),legend.position = c(.95, .95))+ #option for legend on the figure
-  return(pCON)
-}
+  
+#CONNECTIVITY - high FPKM######################
+#forcing the order of the legended titles
+mHIGH$Connectivity <- factor(mHIGH$Connectivity, levels= c("Highest","High","Medium","Low"), labels=c("Highest","High","Medium","Low"))
+pHIGH <- ggplot(mHIGH, aes(x=Loci, y=Pval, group=Connectivity)) +
+  geom_line(aes(color=Connectivity), size=0.6) +
+  scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
+  coord_cartesian(ylim = c(-0.08, ymax+0.1), xlim = c(-5075, 5074), expand = FALSE)+
+  scale_fill_gradient(low="darkgreen",high="green") +
+  geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
+  labs(y=paste0("ChIP-seq Signal"))+ #,subtitle = out
+  geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
+  scale_colour_manual(name='Connectivity', values=c("Low"="black", "Medium"= 'blue3', "High" = 'dodgerblue', "Highest" = 'deepskyblue'), guide='legend') 
+#theme(legend.position="none") #no legend
+#theme(legend.justification = c("right", "top"),legend.position = c(.95, .95))+ #option for legend on the figure
 
-pLOW <- figCreator(lowFPKMtb)
-pHIGH <- figCreator(highFPKMtb)
+
 
 g_legend<-function(a.gplot){
   tmp <- ggplot_gtable(ggplot_build(a.gplot))
