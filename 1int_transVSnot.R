@@ -1,3 +1,5 @@
+#!/usr/bin/env
+
 library(parallel)
 library(snow)
 library(reshape2)
@@ -23,7 +25,7 @@ split2 <- strsplit(split1[1], "/")[[1]]
 name <- split2[length(split2)]
 
 #downstream##########################################
-table_down <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_down.txt"
+#table_down <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_down.txt"
 table1<-read.table(table_down, sep = "\t", header = FALSE)
 #table1 <- table1[1:200,]
 vars <- colsplit(table1$V4, "_", c("ENST", "subcomp" ,"FPKM","connctivity"))
@@ -35,7 +37,7 @@ table1 <- table1[order(table1$ENST),]#order by ENST
 bigwig_d <- table1[,11:ncol(table1)]
 end_loci <- length(bigwig_d)
 #upstream#################################################
-table_up <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_up.txt"
+#table_up <- "D:/shai/hiC_chip-seq/intron_data/CTCF_intron_chr19.table_up.txt"
 table1u<-read.table(table_up,sep = "\t")
 #table1u <- table1u[1:200,]
 varsu <- colsplit(table1u$V4, "_", c("ENST", "subcomp" ,"FPKM","connctivity"))
@@ -57,30 +59,34 @@ ranges_FPKMtb <- cbind.data.frame(ranges, FPKMtb)
 ranges_FPKMtb$ranges <- as.character(ranges_FPKMtb$ranges)
 
 #LOW CON###################################
-lowFPKMtb <- FPKMtb[c(which(ranges_FPKMtb$ranges ==  as.character(levels(ranges)[1]))),]
+lowFPKMtb <- FPKMtb[c(which(FPKMtb$FPKM ==0 )),]
 lowFPKMtb <- lowFPKMtb[order(lowFPKMtb$connctivity),]
 #get the bin ranges
-RangeLow <- cut2(lowFPKMtb$connctivity, g=4)
-ranges_lowFPKMtb <- cbind.data.frame(RangeLow, lowFPKMtb)
-ranges_lowFPKMtb$RangeLow <- as.character(ranges_lowFPKMtb$RangeLow)
+Rangelow <- cut2(lowFPKMtb$connctivity, g=4)
+#RangeHigh <- cut(highFPKMtb$connctivity, 4)
 
-  #mean loop
-  #uni_tb <- unique(ranges_tb[,c(2,3,4,8,12:ncol(ranges_tb))]) #chr-start-end-subcomp
-  low_bin_table <- data.frame(matrix(NA, nrow = c(0:4), ncol = length(position)))
-  for (i in as.character(levels(RangeLow))){
-    print(i)
-    indx <- which(ranges_lowFPKMtb$RangeLow == i)#the row numbers for the bin
-    mean_bin_vector <- t(as.matrix(apply(ranges_lowFPKMtb[indx, c(12:ncol(ranges_lowFPKMtb))], 2, mean, na.rm=TRUE)))#the vector of the mean per nuc
-    bin_mean_bin_vector <- cbind(i,mean_bin_vector)
-    colnames(bin_mean_bin_vector) <- c("Connectivity",position)
-    low_bin_table <- rbind(low_bin_table,bin_mean_bin_vector)
-  }
+ranges_lowFPKMtb <- cbind.data.frame(Rangelow, lowFPKMtb)
+ranges_lowFPKMtb$Rangelow <- as.character(ranges_lowFPKMtb$Rangelow)
+
+#mean loop
+#uni_tb <- unique(ranges_tb[,c(2,3,4,8,12:ncol(ranges_tb))]) #chr-start-end-subcomp
+low_bin_table <- data.frame(matrix(NA, nrow = c(0:4), ncol = length(position)))
+for (i in as.character(levels(Rangelow))){
+  print(i)
+  indx <- which(ranges_lowFPKMtb$Rangelow == i)#the row numbers for the bin
+  mean_bin_vector <- t(as.matrix(apply(ranges_lowFPKMtb[indx, c(12:ncol(ranges_lowFPKMtb))], 2, mean, na.rm=TRUE)))#the vector of the mean per nuc
+  bin_mean_bin_vector <- cbind(i,mean_bin_vector)
+  colnames(bin_mean_bin_vector) <- c("Connectivity",position)
+  low_bin_table <- rbind(low_bin_table,bin_mean_bin_vector)
+}
 
 #HIGH CON##########################################
-highFPKMtb <- FPKMtb[c(which(ranges_FPKMtb$ranges ==  as.character(levels(ranges)[4]))),]
+highFPKMtb <- FPKMtb[as.numeric(round(nrow(FPKMtb)/4)*3):nrow(FPKMtb),]
 highFPKMtb <- highFPKMtb[order(highFPKMtb$connctivity),]
 #get the bin ranges
 RangeHigh <- cut2(highFPKMtb$connctivity, g=4)
+#RangeHigh <- cut(highFPKMtb$connctivity, 4)
+
 ranges_highFPKMtb <- cbind.data.frame(RangeHigh, highFPKMtb)
 ranges_highFPKMtb$RangeHigh <- as.character(ranges_highFPKMtb$RangeHigh)
 
@@ -116,7 +122,6 @@ pLOW <- ggplot(mLOW, aes(x=Loci, y=Pval, group=Connectivity)) +
   geom_line(aes(color=Connectivity), size=0.5) +
   scale_x_continuous(breaks = c(-5000,-75,5000) , labels = c(-5000,"TSS",5000)) +
   coord_cartesian(ylim = c(-0.08, ymax+0.1), xlim = c(-5075, 5074), expand = FALSE)+
-  scale_fill_gradient(low="darkgreen",high="green") +
   geom_segment(aes(x=-75,xend=75,y=0,yend=0),lwd=4,color="black")+
   labs(y=paste0("ChIP-seq Signal"))+ #,subtitle = out
   geom_segment(aes(x=-start_loci,xend=end_loci,y=0,yend=0),lwd=1,color="black")+
@@ -149,11 +154,11 @@ g_legend<-function(a.gplot){
 
 mylegend<-g_legend(pLOW)
 
-#setwd("/home/shaidulberg/chipseq/Modifications/1intron_FPKM_figures")
-setwd("D:/shai/hiC_chip-seq/intron_data")
-png(file= paste0(name,"_1intron_H.L-FPKM.png"),width=1050,height=600,res = 170)
+setwd("/home/shaidulberg/chipseq/Modifications/1intron_connectivity_figuers")
+#setwd("D:/shai/hiC_chip-seq/intron_data")
+png(file= paste0(name,"_1intron_H.L-FPKM.png"),width=1200,height=600,res = 170)
 #print(pFPKM)
-print(grid.arrange(pLOW+theme(legend.position="none")+labs(title = "Low Expression"),
+print(grid.arrange(pLOW+theme(legend.position="none")+labs(title = "No Expression"),
                    pHIGH+theme(legend.position="none")+labs(title = "High Expression")+labs(y= NULL), mylegend,
                    nrow = 1,ncol=3,widths=c(3,3,1), newpage = TRUE,
                    top = textGrob(name ,gp=gpar(fontsize=20,font=2))))
